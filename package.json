@@ -1,0 +1,36 @@
+{
+  "name": "linkedin-clone",
+  "version": "1.0.0",
+  "main": "Backend/server.js",
+  "scripts": {
+    "dev": "nodemon Backend/server.js",
+    "start": "node backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MJephat/linkedin-clone.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MJephat/linkedin-clone/issues"
+  },
+  "homepage": "https://github.com/MJephat/linkedin-clone#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mailtrap": "^3.4.0",
+    "mongodb": "^6.12.0",
+    "mongoose": "^8.9.2"
+  },
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
