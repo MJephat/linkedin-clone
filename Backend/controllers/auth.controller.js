@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import User from "../models/user.model.js";
+import { sendWelcomeEmail } from "../emails/emailHanlers.js";
 
 
 export const signup = async (req, res) => {
@@ -43,6 +44,16 @@ try {
     res.status(201).json({ message: "User registered successfully" })
 
     // todo 01: send welcome email
+    const profileURL = process.env.CLIENT_URL + "/profile/" + user.username
+
+    try {
+        await sendWelcomeEmail(user.email, user.name, profileURL)
+    } catch (emailError) {
+        console.error("Error sending welcome Email", emailError)
+    }
+
+
+
     
 } catch (error) {
     console.log("Error in Signup: ", error.message);
