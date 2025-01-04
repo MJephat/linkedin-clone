@@ -5,7 +5,7 @@ import Post from "../models/post.model.js";
 
 export const getFeedPosts = async (req,res)=>{
     try {
-        const posts = await Post.find({author: {$in: req.user.connections}})
+        const posts = await Post.find({author: {$in: [...req.user.connections, req.user._id]}})
         .populate("author", "name username profilePicture headline")
         .populate("comments.user", "name profilePicture")
         .sort({ createdAt: -1});
@@ -95,30 +95,38 @@ export const getPostById = async (req, res)=>{
 export const createComment = async (req, res)=>{
     try {
         const postId = req.params.id;
-        const {content} = req.body;
+        const { content } = req.body;
 
-        const post = await Post.findByIdAndUpdate(postId, {
-            $push:{comments: {user: req.usr._id,content}},
-        },
+        const post = await Post.findByIdAndUpdate(
+            postId, 
+            {
+            $push:{comments: {user: req.user._id,content}},
+            },
         {new: true}
     ).populate("author", "name email username profilePicture headline");
 
 // create a anotification if the comment owner is not the post owner.
 
-    if(post.author.toString() !== req.user._id.toString()){
-        const newNotidication = new Notification({
+    if(post.author._id.toString() !== req.user._id.toString()){
+        const newNotification = new Notification({
             recipient: post.author,
             type: "comment",
             relatedUser:req.user._id,
             relatedPost: post._id,
         });
-        await newNotidication.save();
+        await newNotification.save();
 
         // todo 04: send notification>>
 
         try {
             const postUrl = process.env.CLIENT_URL + "/post/" + postId;
-            await sendCommentNotificationEmail(post.author.email, post.author.name, req.user.name,postUrl,content);
+            await sendCommentNotificationEmail(
+                post.author.email, 
+                post.author.name, 
+                req.user.name,
+                postUrl,
+                content
+            );
 
         } catch (error) {
             console.log("Error in sending comment Email Notification:", error)
@@ -157,6 +165,8 @@ export const likePost = async (req, res)=>{
                 await newNotidication.save();
             }
         }
+
+        await post.save();
         res.status(200).json(post);
         
     } catch (error) {
