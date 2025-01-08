@@ -159,7 +159,7 @@ const Post = ({post}) => {
                                 <div className='flex items-center mb-1'>
                                     <span className='font-semibold mr-2'>{comment.user.name}</span>
                                     <span className='text-xs text-info'>
-                                        {formatDistanceToNow(new Date(comment.createdAt))}
+                                    {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt)) : new Date().toLocaleString()}                                    
                                     </span>
                                 </div>
                                 <p>{comment.content}</p>

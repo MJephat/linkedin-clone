@@ -1,45 +1,45 @@
 import { sendConnectionAcceptedEmail } from "../emails/emailHanlers.js";
-import { sender } from "../lib/mailtrap.js";
+// import { sender } from "../lib/mailtrap.js";
 import ConnectionRequest from "../models/connectionRequest.model.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 
+
 export const sendConnectionRequest = async (req, res) => {
-    try {
-        const {userId} = req.body;
-        const senderId = req.user._id;
+	try {
+		const { userId } = req.params;
+		const senderId = req.user._id;
 
-        if (senderId.toString() === userId){
-            return res.status(400).json({message: "You cannot send a connection request to yourself"});
-        }
+		if (senderId.toString() === userId) {
+			return res.status(400).json({ message: "You can't send a request to yourself" });
+		}
 
-        if (req.user.connections.includes(userId)){
-            return res.status(400).json({message: "You already connected"});
-        }
+		if (req.user.connections.includes(userId)) {
+			return res.status(400).json({ message: "You are already connected" });
+		}
 
-        const exixtingRequest = await ConnectionRequest.findOne({
-            sender: senderId,
-            recipient: userId,
-            status: "pending",
-        });
-        
-        if (exixtingRequest){
-            return res.status(400).json({message: "You already sent a connection request"});
-        }
+		const existingRequest = await ConnectionRequest.findOne({
+			sender: senderId,
+			recipient: userId,
+			status: "pending",
+		});
 
-        const newRequest = new ConnectionRequest({
-            sender: senderId,
-            recipient: userId,
-        });
+		if (existingRequest) {
+			return res.status(400).json({ message: "A connection request already exists" });
+		}
 
-        await newRequest.save();
-        res.status(200).json({message: "Connection request sent successfully"});
+		const newRequest = new ConnectionRequest({
+			sender: senderId,
+			recipient: userId,
+		});
 
-    } catch (error) {
-        res.status(500).json({message: "Server error"})
-    }
+		await newRequest.save();
+
+		res.status(201).json({ message: "Connection request sent successfully" });
+	} catch (error) {
+		res.status(500).json({ message: "Server error" });
+	}
 };
-
 export const acceptConnectionRequest = async (req, res)=>{
     try {
         const { requestId } = req.params;
@@ -54,7 +54,7 @@ export const acceptConnectionRequest = async (req, res)=>{
         }
 
         // check if the current user is the recipient of the request
-        if (request.recipient._id.toSting() !== userId.toString()){
+        if (request.recipient._id.toString() !== userId.toString()){
             return res.status(403).json({message: "You are not authorized to accept this request"});
         }
 
@@ -63,17 +63,17 @@ export const acceptConnectionRequest = async (req, res)=>{
         }
 
         request.status = "accepted";
-        await request.save();
+		await request.save();
 
         // if i am your friend then ur my friend
         await User.findByIdAndUpdate(request.sender._id, { $addToSet: { connections: userId } });
-        await User.findByIdAndUpdate(userId, { $addToSet: { connections: request.sender._id } });
+		await User.findByIdAndUpdate(userId, { $addToSet: { connections: request.sender._id } });
 
-        // create a notification for the sender
-        const notification = new Notification({
-            recipient: request.sender._id,
-            type: "connectionAccepted",
-            relatedUser: userId,
+        // create a notification for the sennder
+		const notification = new Notification({
+			recipient: request.sender._id,
+			type: "connectionAccepted",
+			relatedUser: userId,
         });
         await notification.save();
 
@@ -92,7 +92,7 @@ export const acceptConnectionRequest = async (req, res)=>{
 
     } catch (error) {
         console.log("Error in acceptConnectionRequest controller:", error);
-        res.status(500).json({message: "Server error"})
+        res.status(500).json({message: "Server error 01"})
     }
 }
 
@@ -129,7 +129,7 @@ export const getConnectionRequests = async (req, res)=>{
         const requests = await ConnectionRequest.find({recipient: userId, status: "pending"})
         .populate("sender", "name username profilePicture headline connections");
 
-        res.status(200).json(requests);
+        res.json(requests);
     } catch (error) {
         console.log("Error in getConnectionRequests controller:", error);
         res.status(500).json({message: "Server error"})
@@ -178,11 +178,11 @@ export const getConnectionStatus = async (req, res)=>{
 
         const pendingRequest = await ConnectionRequest.findOne({
             $or:[
-                {sender: currentUserId, recipient: targetUserId,},
-                {sender: targetUserId, recipient: currentUserId,}
+                {sender: currentUserId, recipient: targetUserId},
+                {sender: targetUserId, recipient: currentUserId},
             ],
             status: "pending",
-        })
+        });
 
         if(pendingRequest){
             if(pendingRequest.sender.toString() === currentUserId.toString()){
@@ -193,7 +193,7 @@ export const getConnectionStatus = async (req, res)=>{
         }
 
         // if no connection or pending req found
-        res.json({status: "not connected"});
+        res.json({status: "not_connected"});
         
     } catch (error) {
         console.log("Error in getConnectionStatus controller:", error);
