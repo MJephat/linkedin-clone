@@ -95,33 +95,30 @@ export const acceptConnectionRequest = async (req, res)=>{
     }
 }
 
-export const rejectConnectionRequest = async (req, res)=>{
-    try {
-        const { requestId } = req.params;
-        const userId = req.user._id;
-        console.log(requestId)
+export const rejectConnectionRequest = async (req, res) => {
+	try {
+		const { requestId } = req.params;
+		const userId = req.user._id;
 
-        const request = await ConnectionRequest.findById({requestId});
-        console.log(request)
+		const request = await ConnectionRequest.findById(requestId);
 
-        if(request.recipient.toString() !== userId.toString()){
-            return res.status(403).json({message: "You are not authorized to reject this request"});
-        }
+		if (request.recipient.toString() !== userId.toString()) {
+			return res.status(403).json({ message: "Not authorized to reject this request" });
+		}
 
-        if (request.status !== "pending"){
-            return res.status(400).json({message: "This request has already been processed"});
-        }
+		if (request.status !== "pending") {
+			return res.status(400).json({ message: "This request has already been processed" });
+		}
 
-        request.status = "rejected";
-        await request.save();
+		request.status = "rejected";
+		await request.save();
 
-        res.json({message: "Connection request rejected successfully"});
-    } catch (error) {
-        console.log("Error in rejectConnectionRequest controller:", error);
-        res.status(500).json({message: "Server error"})
-    }
-    
-}
+		res.json({ message: "Connection request rejected" });
+	} catch (error) {
+		console.error("Error in rejectConnectionRequest controller:", error);
+		res.status(500).json({ message: "Server error" });
+	}
+};
 
 export const getConnectionRequests = async (req, res)=>{
     try {
