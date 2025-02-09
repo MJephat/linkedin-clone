@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
     name:{
-        type:String,
-        require:true
+        type: String,
+        required: true
     },
     username:{type: String, required: true},
     email: {type:String, required: true, unique: true},
@@ -49,7 +49,8 @@ const userSchema = new mongoose.Schema({
     ],
 
     connections: [{
-        type: mongoose.Schema.Types.ObjectId, ref:"User"
+        type: mongoose.Schema.Types.ObjectId, 
+        ref:"User"
     }]
 
 }, {timestamps:true})

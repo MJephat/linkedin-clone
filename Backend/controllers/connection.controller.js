@@ -1,5 +1,4 @@
 import { sendConnectionAcceptedEmail } from "../emails/emailHanlers.js";
-// import { sender } from "../lib/mailtrap.js";
 import ConnectionRequest from "../models/connectionRequest.model.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
@@ -32,7 +31,7 @@ export const sendConnectionRequest = async (req, res) => {
 			sender: senderId,
 			recipient: userId,
 		});
-
+console.log(newRequest)
 		await newRequest.save();
 
 		res.status(201).json({ message: "Connection request sent successfully" });
@@ -46,7 +45,7 @@ export const acceptConnectionRequest = async (req, res)=>{
         const userId = req.user._id;
 
         const request = await ConnectionRequest.findById(requestId)
-        .populate("sender", "name email profilePicture")
+        .populate("sender", "name email username")
         .populate("recipient", "name username ");
 
         if(!request){
@@ -77,7 +76,7 @@ export const acceptConnectionRequest = async (req, res)=>{
         });
         await notification.save();
 
-        res.status(200).json({message: "Connection request accepted successfully"});
+        res.json({message: "Connection request accepted successfully"});
         // todo 05: send notification email
         const senderEmail = request.sender.email;
         const senderName = request.sender.name;
@@ -92,7 +91,7 @@ export const acceptConnectionRequest = async (req, res)=>{
 
     } catch (error) {
         console.log("Error in acceptConnectionRequest controller:", error);
-        res.status(500).json({message: "Server error 01"})
+        res.json({message: "Server error 01"})
     }
 }
 
@@ -100,8 +99,10 @@ export const rejectConnectionRequest = async (req, res)=>{
     try {
         const { requestId } = req.params;
         const userId = req.user._id;
+        console.log(requestId)
 
-        const request = await ConnectionRequest.findById(requestId);
+        const request = await ConnectionRequest.findById({requestId});
+        console.log(request)
 
         if(request.recipient.toString() !== userId.toString()){
             return res.status(403).json({message: "You are not authorized to reject this request"});
@@ -114,7 +115,7 @@ export const rejectConnectionRequest = async (req, res)=>{
         request.status = "rejected";
         await request.save();
 
-        res.status(200).json({message: "Connection request rejected successfully"});
+        res.json({message: "Connection request rejected successfully"});
     } catch (error) {
         console.log("Error in rejectConnectionRequest controller:", error);
         res.status(500).json({message: "Server error"})
@@ -127,7 +128,9 @@ export const getConnectionRequests = async (req, res)=>{
         const userId = req.user._id;
 
         const requests = await ConnectionRequest.find({recipient: userId, status: "pending"})
-        .populate("sender", "name username profilePicture headline connections");
+        .populate("sender",
+            "name username profilePicture headline connections"
+        );
 
         res.json(requests);
     } catch (error) {
@@ -140,9 +143,12 @@ export const getUserConnections = async (req, res)=>{
     try {
         const userId = req.user._id;
 
-        const user = await User.findById(userId).populate("connections", "name username profilePicture headline");
+        const user = await User.findById(userId).populate(
+            "connections", 
+            "name username profilePicture headline connections"
+        );
 
-        res.status(200).json(user.connections);
+        res.json(user.connections);
     } catch (error) {
         console.log("Error in getUserConnections controller:", error);
         res.status(500).json({message: "Server error"});
@@ -158,7 +164,7 @@ export const removeConnection = async (req, res)=>{
         await User.findByIdAndUpdate(myId, {$pull: {connections: userId}});
         await User.findByIdAndUpdate(userId, {$pull: {connections: myId}});
 
-        res.status(200).json({message: "Connection removed successfully"});
+        res.json({message: "Connection removed successfully"});
 
     } catch (error) {
         console.log("Error in removeConnection controller:", error);
@@ -173,7 +179,7 @@ export const getConnectionStatus = async (req, res)=>{
 
         const currentUser = req.user;
         if(currentUser.connections.includes(targetUserId)){
-            return res.status(200).json({status: "connected"});
+            return res.json({status: "connected"});
         }
 
         const pendingRequest = await ConnectionRequest.findOne({
