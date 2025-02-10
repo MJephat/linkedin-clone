@@ -17,6 +17,7 @@ const SkillsSection = ({userData, isOwnProfile,onSave}) => {
   const handleDeleteSkill = (skill) => {
     setSkills(skills.filter((s)=> s !== skill))
   }
+  
 
   const handleSave = () => {
     onSave({skills});
