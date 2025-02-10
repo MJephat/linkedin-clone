@@ -1,4 +1,4 @@
-import { Briefcase, X } from "lucide-react";
+import {  Briefcase, X } from "lucide-react";
 import { useState } from "react";
 import {formatDate} from "../Utils/dateUtils";
 
